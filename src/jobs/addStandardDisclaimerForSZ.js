@@ -1,15 +1,17 @@
 // require's:
+const result = require('dotenv').config({path: 'C:\\Users\\Marc\\abt_lyMediaChanger\\.env' })
 const makeLyMediaList = require("../modules/MakeLyMediaList");
 const addTextInDescription = require("../modules/AddTextInDescription");
 const errorList = require("../assets/errorList");
 
+console.log(result);
 
 // CONST's (hardcoded variables):
 const IS_RE_RUN_FROM_LAST_SUCCESS_AT = null; // default value: null; In case of errors, this should equal the last successfully saved asset id (as string type!, e.g. "11174")
-const URL_FOR_USE = "";
+const URL_FOR_USE = process.env.BASE_URL_LAB;
 const IS_ENVIRONMENT_US = true;
-const USERNAME = "";
-const USER_IDENTIFICATION = "";
+const USERNAME = process.env.USER;
+const USER_IDENTIFICATION = process.env.PASS;
 
 const LYMEDIA_SEARCH_DESCRIPTION = null;
 const AUTHOR = null;
