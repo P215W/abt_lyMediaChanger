@@ -6,11 +6,13 @@ async function MakeLyMediaList(
   IS_US_ENVIRONMENT,
   USERNAME,
   USER_IDENTIFICATION,
+  LYMEDIA_SEARCH_TITLE,
   LYMEDIA_SEARCH_DESCRIPTION,
-  AUTHOR,
+  LYMEDIA_SEARCH_AUTHOR,
   LYMEDIA_SEARCH_EXTERNAL_ADDITION_TYPE,
   LYMEDIA_SEARCH_CHOOSECOPYRIGHTS,
-  exclude_tags
+  LYMEDIA_SEARCH_REQUIRE_TAGS,
+  LYMEDIA_SEARCH_EXCLUDE_TAGS
 ) {
   //   const str = "";
   //   const pos = str.search("von");
@@ -34,8 +36,9 @@ async function MakeLyMediaList(
 
   // SEARCH IN LYMEDIA:
   // SEARCH PARAMS:
+  if (LYMEDIA_SEARCH_TITLE) await page.type("#ly_media_asset_filters_title", `${LYMEDIA_SEARCH_TITLE}`);
   if (LYMEDIA_SEARCH_DESCRIPTION) await page.type("#ly_media_asset_filters_description", `${LYMEDIA_SEARCH_DESCRIPTION}`);
-  if (AUTHOR) await page.type("#ly_media_asset_filters_author", `${AUTHOR}`); // for text-input "author"
+  if (LYMEDIA_SEARCH_AUTHOR) await page.type("#ly_media_asset_filters_author", `${LYMEDIA_SEARCH_AUTHOR}`); // for text-input "author"
   if (LYMEDIA_SEARCH_EXTERNAL_ADDITION_TYPE)
     await page.select(
       "#ly_media_asset_filters_external_addition_type",
@@ -43,11 +46,8 @@ async function MakeLyMediaList(
     );
   
   if (LYMEDIA_SEARCH_CHOOSECOPYRIGHTS) await page.select("#ly_media_asset_filters_copyright", `${LYMEDIA_SEARCH_CHOOSECOPYRIGHTS}`);
-  if (exclude_tags)
-    await page.select(
-      "#ly_media_asset_filters_exclude_tags",
-      "bild:bildtyp=Strukturformel"
-    );
+  if (LYMEDIA_SEARCH_REQUIRE_TAGS) await page.select("#ly_media_asset_filters_include_tags", `${LYMEDIA_SEARCH_REQUIRE_TAGS}`);
+  if (LYMEDIA_SEARCH_EXCLUDE_TAGS) await page.select("#ly_media_asset_filters_exclude_tags", `${LYMEDIA_SEARCH_EXCLUDE_TAGS}`);
 
   // CLICK FILTER BUTTON:
   await Promise.all([
