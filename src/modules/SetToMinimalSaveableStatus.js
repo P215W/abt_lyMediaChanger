@@ -1,4 +1,4 @@
-async function SetToMinimalSaveableStatus(puppeteerPage) {
+async function SetToMinimalSaveableStatus(puppeteerPage, statusInPercentage) {
   let status;
   try {
     const element = await puppeteerPage.$("#ly_media_asset_status");
@@ -8,7 +8,7 @@ async function SetToMinimalSaveableStatus(puppeteerPage) {
   }
 
   if (status === "0")
-    await puppeteerPage.select("#ly_media_asset_status", `${10}`);
+    await puppeteerPage.select("#ly_media_asset_status", `${statusInPercentage}`);
 }
 
 exports.data = SetToMinimalSaveableStatus;

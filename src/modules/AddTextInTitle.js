@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const errorList = require("../assets/errorList");
 const SetToMinimalSaveableStatus = require("./SetToMinimalSaveableStatus");
+const CheckAssetUsage = require("./CheckAssetUsage");
 
 async function AddTextInTitle(
   URL_FOR_USE,
@@ -24,6 +25,8 @@ async function AddTextInTitle(
   // MAKE A CHANGE COMMENT IN THE INTERNAL COMMENT FIELD (FOR LATER CHECK AND SEARCHABILITY):
   await page.type("#ly_media_asset_cmt", `${CHANGE_COMMENTARY} \n`);
 
+  CheckAssetUsage.data(page);
+
   // GET ACCESS TO TEXT FROM IMAGE DESCRIPTION:
   let currentText;
   try {
@@ -45,7 +48,6 @@ async function AddTextInTitle(
     await page.click("#ly_media_asset_title");
 
     // MARKING ALL TEXT AND DELETING IT (SO THAT WE CAN ADD IN OUR NEW TEXT):
-
     await page.keyboard.down("Control");
     await page.keyboard.press("KeyA");
     await page.keyboard.up("Control");
@@ -56,7 +58,6 @@ async function AddTextInTitle(
   } catch (err) {
     throw new Error(`Error at text-overwriting part: ${err}`);
   }
-  // }
 
   // JUST FOR TESTING ERRORS: can be removed afterwards
   // if (id === 13636)
@@ -83,7 +84,7 @@ async function AddTextInTitle(
   const hasError = await page.$(".error");
   if (hasError === null) {
     console.log(`No errors were received. Saving was succesful for ${id} !`);
-    await browser.close();
+    // await browser.close();
   }
   if (hasError) {
     console.log("Saving was NOT succesfull!");

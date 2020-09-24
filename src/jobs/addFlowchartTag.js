@@ -3,28 +3,27 @@ const result = require("dotenv").config({
   // in order for this to work: run "node -r dotenv/config your_script.js" for the first time
   path: "C:\\Users\\Marc\\abt_lyMediaChanger\\.env",
 });
+const puppeteer = require("puppeteer");
 const makeLyMediaList = require("../modules/MakeLyMediaList");
-const AddTextInTitle = require("../modules/AddTextInTitle");
 const errorList = require("../assets/errorList");
 
 console.log(result);
 
 // CONST's (hardcoded variables):
-const IS_RE_RUN_FROM_LAST_SUCCESS_AT = "12288"; // default value: null; In case of errors, this should equal the last successfully saved asset id (as string type!, e.g. "11174")
-const URL_FOR_USE = process.env.BASE_URL_LAB_EN;
-const IS_ENVIRONMENT_EN = true;
+const IS_RE_RUN_FROM_LAST_SUCCESS_AT = null; // default value: null; In case of errors, this should equal the last successfully saved asset id (as string type!, e.g. "11174")
+const URL_FOR_USE = process.env.BASE_URL_PROD_DE;
+const IS_ENVIRONMENT_EN = false;
 const USERNAME = process.env.USER;
 const USER_IDENTIFICATION = process.env.PASS;
+// const CHANGE_COMMENTARY = "autorun_PROD_addFCTag";
 
 const LYMEDIA_SEARCH_TITLE = null;
-const LYMEDIA_SEARCH_DESCRIPTION = null;
+const LYMEDIA_SEARCH_DESCRIPTION = "Flussdiagramm";
 const LYMEDIA_SEARCH_AUTHOR = null;
 const LYMEDIA_SEARCH_EXTERNAL_ADDITION_TYPE = null;
 const LYMEDIA_SEARCH_CHOOSECOPYRIGHTS = null;
-const LYMEDIA_SEARCH_REQUIRE_TAGS = "bild:Illustration=maxi-md";
+const LYMEDIA_SEARCH_REQUIRE_TAGS = null;
 const LYMEDIA_SEARCH_EXCLUDE_TAGS = null;
-const TEXT_FOR_ADDING = "DO NOT USE - "; // "NICHT BENUTZEN - ";
-const CHANGE_COMMENTARY = "autorun_LAB_addTitlePrefixFMaxiMD";
 
 // call modules with above CONST'S as their respective arguments:
 (async (isReRunFrom) => {
@@ -62,23 +61,57 @@ const CHANGE_COMMENTARY = "autorun_LAB_addTitlePrefixFMaxiMD";
 
   // PARSE ITEMS:
   for (let item of arrayForLoop) {
-    try {
-      await AddTextInTitle.data(
-        URL_FOR_USE,
-        item,
-        USERNAME,
-        USER_IDENTIFICATION,
-        TEXT_FOR_ADDING,
-        CHANGE_COMMENTARY
-      );
-    } catch (err) {
-      console.log(
-        `Error occured at id ${item} with this message: ${err}. So far these lyMedia Ids could not be saved and have to be revisited: ${errorList.data}`
-      );
-    }
+    const browser = await puppeteer.launch({ headless: false });
+    const page = await browser.newPage();
+    page.setDefaultNavigationTimeout(100000);
+
+    const assetsUnsuccesfullSaving = [];
+
+    await page.goto(`${URL_FOR_USE}ly_media_asset/${item}/edit`);
+    await page.type("#signin_username", `${USERNAME}`); // cred
+    await page.type("#signin_password", `${USER_IDENTIFICATION}`); // cred
+    await Promise.all([page.click("tfoot input"), page.waitForNavigation()]);
+
+    // try to edit the tags for flowchart
+    await page.type(
+      "#ly_media_asset_tags_list_bildtyp_chzn input",
+      "Illustration"
+    );
+    await page.keyboard.press("Enter");
+    await page.type(
+      "#ly_media_asset_tags_list_Illustration_chzn input",
+      "Flowchart"
+    );
+    await page.keyboard.press("Enter");
+
+      // SAVE CHANGES:
+      try {
+        await Promise.all([
+          page.click(".sf_admin_action_save input"),
+          page.waitForNavigation(),
+        ]);
+        console.log(`Saving was initiated correctly for ${item}`);
+      } catch (err) {
+        throw new Error(`Error at save-input: ${err}`);
+      }
+    
+      // COPE WITH SAVING-RELATED ERRORS:
+      const hasError = await page.$(".error");
+      if (hasError === null) {
+        console.log(`No errors were received. Saving was succesful for ${item} !`);
+        await browser.close();
+      }
+      if (hasError) {
+        console.log("Saving was NOT succesfull!");
+        assetsUnsuccesfullSaving.push(item);
+        errorList.data.push(item);
+      }
+      console.log("assetsUnsuccesfullSaving:", assetsUnsuccesfullSaving);
+
   }
   console.log(
-    "---- JOB FINISHED ---- These lyMedia Ids could not be saved and have to be revisited: ",
+    "---- JOB FINISHED ---- These lyMedia items could not be saved and have to be revisited: ",
     errorList.data
   );
+
 })(IS_RE_RUN_FROM_LAST_SUCCESS_AT);
