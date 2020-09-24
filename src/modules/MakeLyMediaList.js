@@ -9,6 +9,7 @@ async function MakeLyMediaList(
   LYMEDIA_SEARCH_TITLE,
   LYMEDIA_SEARCH_DESCRIPTION,
   LYMEDIA_SEARCH_AUTHOR,
+  LYMEDIA_SEARCH_STATUS,
   LYMEDIA_SEARCH_EXTERNAL_ADDITION_TYPE,
   LYMEDIA_SEARCH_CHOOSECOPYRIGHTS,
   LYMEDIA_SEARCH_REQUIRE_TAGS,
@@ -39,6 +40,7 @@ async function MakeLyMediaList(
   if (LYMEDIA_SEARCH_TITLE) await page.type("#ly_media_asset_filters_title", `${LYMEDIA_SEARCH_TITLE}`);
   if (LYMEDIA_SEARCH_DESCRIPTION) await page.type("#ly_media_asset_filters_description", `${LYMEDIA_SEARCH_DESCRIPTION}`);
   if (LYMEDIA_SEARCH_AUTHOR) await page.type("#ly_media_asset_filters_author", `${LYMEDIA_SEARCH_AUTHOR}`); // for text-input "author"
+  if (LYMEDIA_SEARCH_STATUS) await page.select("#ly_media_asset_filters_status", `${LYMEDIA_SEARCH_STATUS}`);
   if (LYMEDIA_SEARCH_EXTERNAL_ADDITION_TYPE)
     await page.select(
       "#ly_media_asset_filters_external_addition_type",
