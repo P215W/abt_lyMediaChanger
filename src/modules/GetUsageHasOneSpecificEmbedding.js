@@ -16,7 +16,6 @@ async function GetUsageHasOneSpecificEmbedding(page, embeddingOfInterest) {
     const valueConverted = parseInt(value);
     return { [key]: valueConverted };
   });
-  console.log("usageDataArray: ", usageDataArray);
 
   function hasOneSpecificEmbedding(imageUsageArray, keyOfInterest) {
     for (let object of imageUsageArray) {

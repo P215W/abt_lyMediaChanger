@@ -9,7 +9,9 @@
   "author": "mg",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "lodash": "^4.17.19",
-    "puppeteer": "^5.2.1"
+    "puppeteer": "^5.2.1",
+    "xlsx": "^0.16.6"
   }
 }

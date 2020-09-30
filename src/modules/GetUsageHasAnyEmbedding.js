@@ -16,7 +16,6 @@ async function GetUsageHasAnyEmbedding(page) {
     const valueConverted = parseInt(value);
     return { [key]: valueConverted };
   });
-  console.log("usageDataArray: ", usageDataArray);
 
   function hasAnyEmbedding(imageUsageArray) {
     let result = null;
