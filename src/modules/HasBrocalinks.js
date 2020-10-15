@@ -1,4 +1,4 @@
-async function CheckBrocalinks(isLab, browser, page, assetId) {
+async function HasBrocalinks(isLab, browser, page, assetId) {
   // open Broca modal:
   await page.click(".js-broca-button");
 
@@ -26,7 +26,8 @@ async function CheckBrocalinks(isLab, browser, page, assetId) {
   // close Broca model (by just clicking page elements in the background):
   await page.click("label[for=ly_media_asset_description]");
 
-  return numberOfBrocalinks;
+  const hasBrocalinks = numberOfBrocalinks>0 ? true : false;
+  return hasBrocalinks;
 }
 
-exports.data = CheckBrocalinks;
+exports.data = HasBrocalinks;

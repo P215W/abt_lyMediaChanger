@@ -117,7 +117,9 @@ async function forDevelopmentTestASingleAsset(
 
 forDevelopmentTestASingleAsset(
   URL_FOR_USE,
-  "14030", // some embeddings
+  // "14030", // some embeddings
+  // "15382", // zero
+  "6366", // some
   // "15409",
   // "12742", // zero embeddings
   USERNAME,
