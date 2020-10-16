@@ -15,23 +15,24 @@ const USER_IDENTIFICATION = process.env.PASS;
 const CHANGE_COMMENTARY = "autorun_brocarize";
 const NEXT_EDITOR = "Marcel Bischoff (MAB)"; // FIX ME / TO DO: long-term this will most likely become an array of editors, from which we pick one randomly for each loop iteration
 
-(async () => {
-  // 1.: get spreadsheet data:
+(async (singleAsset) => { // here you can pass in a single asset object which is put in first place of the looped-through array, to test/revisit a particular asset of interest (e.g. tatht has special characteristics to test edge cases etc.)
+  // gets spreadsheet data:
   const spreadsheetData = await GetSpreadsheetData.data(
     workbookName,
     worksheetName
   );
-
-  // 2.:
   console.log("spreadsheetData: ", spreadsheetData);
 
-  // 3.:
+  // spreads into array to not mutate spreadsheetData directly:
   const spreadedArray = [...spreadsheetData];
+  if (singleAsset) {
+    spreadedArray.unshift(singleAsset);
+  }
 
-  // 4.:
+  // loops through result array (the spreaded one) to do actual brocarization:
   for (let asset of spreadedArray) {
     if (asset.isChecked === false) {
-      // open asset with Brocarize-Code:
+      // opens asset with Brocarize-Code:
       const brocarizationResult = await Brocarize.data(
         asset.lyMediaLink,
         IS_LAB,
@@ -42,31 +43,38 @@ const NEXT_EDITOR = "Marcel Bischoff (MAB)"; // FIX ME / TO DO: long-term this w
         NEXT_EDITOR
       );
 
-      // default scenario:
+      // default property scenario:
+      asset.isBrocarizable = true;
       asset.alreadyBrocarized = false;
-      asset.canGetBrocarized = true;
-      asset.brocarized = true;
+      asset.autoBrocarized = true;
+      asset.inSumBrocarized = true;
       asset.isChecked = true;
 
       // case 'asset is already brocarized':
       if (brocarizationResult === "alreadyBrocarized true") {
         asset.alreadyBrocarized = true;
+        asset.autoBrocarized = false;
       }
 
-      // case 'asset cannot be brocarized':
-      if (brocarizationResult === "canGetBrocarized false") {
-        asset.canGetBrocarized = false;
-        asset.brocarized = false;
+      // case 'asset cannot be brocarized', e.g. not through editorial workflow yet, and therefore lacks title etc.:
+      if (brocarizationResult === "isBrocarizable false") {
+        asset.isBrocarizable = false;
+        asset.autoBrocarized = false;
+        asset.inSumBrocarized = true;
       }
-
-      console.log(
-        "spreadedArray at end of single asset processing: ",
-        spreadedArray
-      );
 
       await SetSpreadsheetData.data(workbookName, worksheetName, spreadedArray);
 
-      console.log(`Process done for ${asset.lyMediaLink}`);
+      console.log(
+        `-- Process done for ${asset.lyMediaLink} with ${brocarizationResult} --`
+      );
     } else continue;
   }
-})();
+})({
+  lyMediaLink: "https://ribosom.miamed.de/ly_media_asset/11381/edit", // pass in an argument here in object format, if you want to test/revist a single asset (or a group of special assets, then as an array of objects?)
+  isChecked: false,
+  isBrocarizable: null,
+  alreadyBrocarized: null,
+  autoBrocarized: null,
+  inSumBrocarized: null,
+});

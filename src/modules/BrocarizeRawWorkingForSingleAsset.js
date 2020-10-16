@@ -13,7 +13,7 @@ const SetTitle = require("./SetTitle");
 const AddTextInInternalCommentary = require("./AddTextInInternalCommentary");
 const GetTranslatedText = require("./GetTranslatedText");
 const GetAssetId = require("./GetAssetId");
-const CheckBrocalinks = require("./CheckBrocalinks");
+const HasBrocalinks = require("./HasBrocalinks");
 const SetNewBrocalink = require("./SetNewBrocalink");
 const SetTextInDescription = require("./SetTextInDescription");
 
@@ -55,7 +55,7 @@ async function Brocarize(
   // check for brocalinks:
   const assetId = await GetAssetId.data(page);
   const hasBrocalinks =
-    (await CheckBrocalinks.data(IS_LAB, browser, page, assetId)) > 0
+    (await HasBrocalinks.data(IS_LAB, browser, page, assetId)) > 0
       ? true
       : false;
   console.log("hasBrocalinks: ", hasBrocalinks);

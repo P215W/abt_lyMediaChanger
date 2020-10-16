@@ -61,7 +61,7 @@ async function Brocarize(
   if (title === "") {
     // closes all tabs for the brocarization process:
     await browser.close();
-    return "canGetBrocarized false";
+    return "isBrocarizable false";
   }
 
   await DownloadAsset.data(page); // downloads asset's image
@@ -185,7 +185,7 @@ async function Brocarize(
   // closes all tabs for the brocarization process:
   await browser.close();
 
-  console.log(`-- Brocarization DONE for ${assetURL} --`);
+  return "autoBrocarized TRUE";
 }
 
 exports.data = Brocarize;

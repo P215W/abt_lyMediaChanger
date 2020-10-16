@@ -6,8 +6,6 @@ const result = require("dotenv").config({
 const puppeteer = require("puppeteer");
 const makeLyMediaList = require("../modules/MakeLyMediaList");
 const errorList = require("../assets/errorList");
-const GetUsageHasOneSpecificEmbedding = require("../modules/GetUsageHasOneSpecificEmbedding");
-const GetSpreadsheetData = require("../modules/GetSpreadsheetData");
 const SetSpreadsheetData = require("../modules/SetSpreadsheetData");
 
 console.log(result);
@@ -51,9 +49,10 @@ const LYMEDIA_SEARCH_EXCLUDE_TAGS = null;
     return {
       lyMediaLink: `${URL_FOR_USE}ly_media_asset/${item}/edit`,
       isChecked: false,
-      canGetBrocarized: null,
+      isBrocarizable: null,
       alreadyBrocarized: null,
-      brocarized: null,
+      autoBrocarized: null,
+      inSumBrocarized: null
     };
   });
 
