@@ -46,8 +46,8 @@ async function Brocarize(
   await page.type("#signin_password", `${USER_IDENTIFICATION}`); // cred
   await Promise.all([page.click("tfoot input"), page.waitForNavigation()]);
 
-  // checks for brocalinks:
   const assetId = await GetAssetId.data(page);
+  // checks for brocalinks:
 
   const hasBrocalinks = await HasBrocalinks.data(isLab, browser, page, assetId);
   console.log("hasBrocalinks: ", hasBrocalinks);
