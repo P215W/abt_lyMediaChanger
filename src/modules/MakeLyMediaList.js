@@ -9,10 +9,13 @@ async function MakeLyMediaList(
   LYMEDIA_SEARCH_TITLE,
   LYMEDIA_SEARCH_DESCRIPTION,
   LYMEDIA_SEARCH_AUTHOR,
+  LYMEDIA_SEARCH_COMMENT,
   LYMEDIA_SEARCH_STATUS,
+  LYMEDIA_SEARCH_NEXT_EDITOR,
   LYMEDIA_SEARCH_EXTERNAL_ADDITION_TYPE,
   LYMEDIA_SEARCH_CHOOSECOPYRIGHTS,
   LYMEDIA_SEARCH_REQUIRE_TAGS,
+  LYMEDIA_SEARCH_REQUIRE_TAGS_FOR_TISSUE,
   LYMEDIA_SEARCH_EXCLUDE_TAGS
 ) {
   //   const str = "";
@@ -37,19 +40,49 @@ async function MakeLyMediaList(
 
   // SEARCH IN LYMEDIA:
   // SEARCH PARAMS:
-  if (LYMEDIA_SEARCH_TITLE) await page.type("#ly_media_asset_filters_title", `${LYMEDIA_SEARCH_TITLE}`);
-  if (LYMEDIA_SEARCH_DESCRIPTION) await page.type("#ly_media_asset_filters_description", `${LYMEDIA_SEARCH_DESCRIPTION}`);
-  if (LYMEDIA_SEARCH_AUTHOR) await page.type("#ly_media_asset_filters_author", `${LYMEDIA_SEARCH_AUTHOR}`); // for text-input "author"
-  if (LYMEDIA_SEARCH_STATUS) await page.select("#ly_media_asset_filters_status", `${LYMEDIA_SEARCH_STATUS}`);
+  if (LYMEDIA_SEARCH_TITLE)
+    await page.type("#ly_media_asset_filters_title", `${LYMEDIA_SEARCH_TITLE}`);
+  if (LYMEDIA_SEARCH_DESCRIPTION)
+    await page.type(
+      "#ly_media_asset_filters_description",
+      `${LYMEDIA_SEARCH_DESCRIPTION}`
+    );
+  if (LYMEDIA_SEARCH_AUTHOR)
+    await page.type(
+      "#ly_media_asset_filters_author",
+      `${LYMEDIA_SEARCH_AUTHOR}`
+    ); // for text-input "author"
+  // if (LYMEDIA_SEARCH_STATUS) await page.select("#ly_media_asset_filters_status", `${LYMEDIA_SEARCH_STATUS}`);
+if (LYMEDIA_SEARCH_COMMENT) await page.type("#ly_media_asset_filters_cmt", `${LYMEDIA_SEARCH_COMMENT}`);
+  if (LYMEDIA_SEARCH_STATUS)
+    await page.select("#ly_media_asset_filters_status", LYMEDIA_SEARCH_STATUS);
+  if (LYMEDIA_SEARCH_NEXT_EDITOR)
+    await page.select(
+      "#ly_media_asset_filters_next_editor_id",
+      LYMEDIA_SEARCH_NEXT_EDITOR
+    );
   if (LYMEDIA_SEARCH_EXTERNAL_ADDITION_TYPE)
     await page.select(
       "#ly_media_asset_filters_external_addition_type",
       `${LYMEDIA_SEARCH_EXTERNAL_ADDITION_TYPE}`
     );
-  
-  if (LYMEDIA_SEARCH_CHOOSECOPYRIGHTS) await page.select("#ly_media_asset_filters_copyright", `${LYMEDIA_SEARCH_CHOOSECOPYRIGHTS}`);
-  if (LYMEDIA_SEARCH_REQUIRE_TAGS) await page.select("#ly_media_asset_filters_include_tags", `${LYMEDIA_SEARCH_REQUIRE_TAGS}`);
-  if (LYMEDIA_SEARCH_EXCLUDE_TAGS) await page.select("#ly_media_asset_filters_exclude_tags", `${LYMEDIA_SEARCH_EXCLUDE_TAGS}`);
+
+  if (LYMEDIA_SEARCH_CHOOSECOPYRIGHTS)
+    await page.select(
+      "#ly_media_asset_filters_copyright",
+      `${LYMEDIA_SEARCH_CHOOSECOPYRIGHTS}`
+    );
+  if (LYMEDIA_SEARCH_REQUIRE_TAGS)
+    await page.select(
+      "#ly_media_asset_filters_include_tags",
+      `${LYMEDIA_SEARCH_REQUIRE_TAGS}`,
+      `${LYMEDIA_SEARCH_REQUIRE_TAGS_FOR_TISSUE}` // this enables multi-select (i.e. it will choose the first tag plus the tissue)
+    );
+  if (LYMEDIA_SEARCH_EXCLUDE_TAGS)
+    await page.select(
+      "#ly_media_asset_filters_exclude_tags",
+      `${LYMEDIA_SEARCH_EXCLUDE_TAGS}`
+    );
 
   // CLICK FILTER BUTTON:
   await Promise.all([
@@ -60,14 +93,20 @@ async function MakeLyMediaList(
   ]);
 
   // SORT RESULTS BY ID (DESCENDING, aka. NEW TO OLD IDs):
-  await Promise.all([
-    page.click(".sf_admin_list_th_id a"),
-    page.waitForNavigation(),
-  ]);
-  await Promise.all([
-    page.click(".sf_admin_list_th_id a"),
-    page.waitForNavigation(),
-  ]);
+  try {
+    await Promise.all([
+      page.click(".sf_admin_list_th_id a"),
+      page.waitForNavigation(),
+    ]);
+    await Promise.all([
+      page.click(".sf_admin_list_th_id a"),
+      page.waitForNavigation(),
+    ]);
+  } catch {
+    console.log("Search yielded ZERO results");
+    await browser.close();
+    return [];
+  }
 
   // GET PAGE AMOUNT OF SEARCH RESULTS:
   let pageAmount;
@@ -103,9 +142,7 @@ async function MakeLyMediaList(
 
   // BUILD ONE BIG ARRAY THAT HOLDS ALL PAGE-ARRAYS. A PAGE-ARRAY HOLDS ALL LYMEDIA-IDS FOUND FOR THE GIVEN SEARCH:
   for (let i = 1; i <= pageAmount; i++) {
-    await page.goto(
-      `${URL_FOR_USE}ly_media_asset?page=${i}`
-    );
+    await page.goto(`${URL_FOR_USE}ly_media_asset?page=${i}`);
     arrForPush = await page.$$eval(".sf_admin_list_td_id a", (links) =>
       links.map((link) => link.innerHTML)
     );

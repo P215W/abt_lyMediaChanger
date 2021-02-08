@@ -3,21 +3,24 @@ const result = require("dotenv").config({
   // in order for this to work: run "node -r dotenv/config your_script.js" for the first time
   path: "C:\\Users\\Marc\\abt_lyMediaChanger\\.env",
 });
-const SetToMinimalSaveableStatus = require("../modules/SetToMinimalSaveableStatus");
-const GetTitle = require("../modules/GetTitle");
-const GetDescription = require("../modules/GetDescription");
-const GetAuthorResponsible = require("../modules/GetAuthorResponsible");
-const DownloadAsset = require("../modules/DownloadAsset");
-const GetAssetFilename = require("../modules/GetAssetFilename");
-const SetTitle = require("../modules/SetTitle");
-const AddTextInInternalCommentary = require("../modules/AddTextInInternalCommentary");
-const GetTranslatedText = require("../modules/GetTranslatedText");
+const SetToMinimalSaveableStatus = require("./SetToMinimalSaveableStatus");
+const GetTitle = require("./GetTitle");
+const GetDescription = require("./GetDescription");
+const GetAuthorResponsible = require("./GetAuthorResponsible");
+const DownloadAsset = require("./DownloadAsset");
+const GetAssetFilename = require("./GetAssetFilename");
+const SetTitle = require("./SetTitle");
+const AddTextInInternalCommentary = require("./AddTextInInternalCommentary");
+const GetTranslatedText = require("./GetTranslatedText");
 const GetAssetId = require("./GetAssetId");
-const CheckBrocalinks = require("./CheckBrocalinks");
+const HasBrocalinks = require("./HasBrocalinks");
+const SetNewBrocalink = require("./SetNewBrocalink");
+const SetTextInDescription = require("./SetTextInDescription");
 
 // CONST's (hardcoded variables):
 const IS_RE_RUN_FROM_LAST_SUCCESS_AT = null; // default value: null; In case of errors, this should equal the last successfully saved asset id (as string type!, e.g. "11174")
 const URL_FOR_USE = process.env.BASE_URL_LAB_DE;
+const IS_LAB = true;
 const IS_ENVIRONMENT_EN = false;
 const USERNAME = process.env.USER;
 const USER_IDENTIFICATION = process.env.PASS;
@@ -42,17 +45,19 @@ async function Brocarize(
 ) {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
-  page.setDefaultNavigationTimeout(100000);
+  page.setDefaultNavigationTimeout(200000);
 
   await page.goto(`${URL_FOR_USE}ly_media_asset/${id}/edit`);
   await page.type("#signin_username", `${USERNAME}`); // cred
   await page.type("#signin_password", `${USER_IDENTIFICATION}`); // cred
   await Promise.all([page.click("tfoot input"), page.waitForNavigation()]);
 
-
-// check for brocalinks:
-const assetId = await GetAssetId.data(page);
-  const hasBrocalinks = await CheckBrocalinks.data(true, browser, page, assetId) > 0 ? true : false;
+  // check for brocalinks:
+  const assetId = await GetAssetId.data(page);
+  const hasBrocalinks =
+    (await HasBrocalinks.data(IS_LAB, browser, page, assetId)) > 0
+      ? true
+      : false;
   console.log("hasBrocalinks: ", hasBrocalinks);
 
   await DownloadAsset.data(page);
@@ -71,32 +76,24 @@ const assetId = await GetAssetId.data(page);
   const authorResponsible = await GetAuthorResponsible.data(page); // get AuthorResponsible
   const title = await GetTitle.data(page);
   const description = await GetDescription.data(page);
-  console.log("description: ", description);
+  const newDescription = description.replace(/<p>|<\/p>|<br>/g, "");
+  console.log("!!! newDescription !!!: ", newDescription);
 
   // TRANSLATE TEXT (TITLE TEXT IN THIS CASE): // TODO: make this a function mid-term
   const page2 = await browser.newPage(); // open new tab
-  // await page2.goto(
-  //   "https://translate.google.com/#view=home&op=translate&sl=de&tl=en"
-  // );
-  // await page2.bringToFront(); // make the tab active
-  // await page2.type("#source", title);
-  // await page2.waitForSelector(".tlid-translation span");
-  // const translatedTitle = await page2.$eval(
-  //   ".tlid-translation span",
-  //   (element) => element.textContent
-  // );
-  // c.log(translatedTitle);
+
   const translatedTitle = await GetTranslatedText.data(page2, title);
   console.log("translatedTitle: ", translatedTitle);
 
   const page3 = await browser.newPage();
   const translatedDescription = await GetTranslatedText.data(
-    // if ok, procesd with html dextratcio, esle else :
     page3,
-    // "Test eins zwei drei. Und Test hier auch."
     description
   );
   console.log("translatedDescription: ", translatedDescription);
+  const newTranslatedDescription1 = translatedDescription.replace(/<p>|<\/p>/g, "");
+  const newTranslatedDescription2 = newTranslatedDescription1.replace(/<br>/g, "\n").trim();
+  console.log("newTranslatedDescription2: ", newTranslatedDescription2);
 
   await page.bringToFront(); // make the tab active
 
@@ -106,6 +103,7 @@ const assetId = await GetAssetId.data(page);
   await page.click("[value='Create Copy in other language']");
   // handle Page 2: you can access new page DOM through newPage object  // make bringto ftont alternatively
   const newPage = await newPagePromise;
+  newPage.setDefaultNavigationTimeout(200000);
   await newPage.waitForSelector("#signin_username");
   await newPage.type("#signin_username", `${USERNAME}`); // cred
   await newPage.type("#signin_password", `${USER_IDENTIFICATION}`); // cred
@@ -136,8 +134,8 @@ const assetId = await GetAssetId.data(page);
   }
 
   const brocarizeTag = CHANGE_COMMENTARY;
-  const titleData = `Auto-translated title:\t\t"${translatedTitle}"\nOriginal untranslated title:\t"${title}"`;
-  const descriptionData = `Auto-translated image description:\t"${translatedDescription}"\nOriginal untranslated description:\t"${description}"`;
+  const titleData = `Original untranslated title:\t"${title}"\nAuto-translated title:\t\t"${translatedTitle}"`;
+  const descriptionData = `Original untranslated description:\t"${newDescription}"\nAuto-translated image description:\t"${newTranslatedDescription2}"`;
   const textForInternalCommentary = `${brocarizeTag}\n\nID of the original brocarized asset: ${originalAssetId}\n\n${titleData}\n\n${descriptionData}\n---------\n\n`;
 
   await AddTextInInternalCommentary.data(newPage, textForInternalCommentary);
@@ -153,6 +151,8 @@ const assetId = await GetAssetId.data(page);
   // });
   // console.log("optionHit: ", optionHit);
 
+  await SetTextInDescription.data(newPage, "");
+
   // SETS AUTHOR_RESPONSIBLE TO THE ONE FROM THE ORIGINAL ASSET:
   await newPage.type("#ly_media_asset_owner_id_chzn input", authorResponsible);
   await newPage.keyboard.press("Enter");
@@ -161,23 +161,26 @@ const assetId = await GetAssetId.data(page);
   await newPage.type("#ly_media_asset_next_editor_id_chzn input", NEXT_EDITOR);
   await newPage.keyboard.press("Enter");
 
+
+
   // SETS ASSETS WITH A NON-SAVEABLE STATUS OF 0% TO 1% STATUS:
   await SetToMinimalSaveableStatus.data(newPage, 1);
 
-  // JUST FOR TESTING ERRORS: can be removed afterwards
-  // if (id === 13636)
-  // await page.select("#ly_media_asset_external_addition_type", "smartzoom");
-
   // SAVE CHANGES -HERE-:
-  // try {
-  //   await Promise.all([
-  //     newPage.click(".sf_admin_action_save input"),
-  //     newPage.waitForNavigation(),
-  //   ]);
-  //   console.log(`Saving was initiated correctly for ${id}`);
-  // } catch (err) {
-  //   throw new Error(`Error at save-input: ${err}`);
-  // }
+  try {
+    await Promise.all([
+      newPage.click(".sf_admin_action_save input"),
+      newPage.waitForNavigation(),
+    ]);
+    console.log(`Saving was initiated correctly for ${id}`);
+  } catch (err) {
+    throw new Error(`Error at save-input: ${err}`);
+  }
+
+  // get new asset id:
+  const newAssetId = await GetAssetId.data(newPage);
+  // open broca modal in saved asset
+  await SetNewBrocalink.data(IS_LAB, IS_ENVIRONMENT_EN, browser, newAssetId, title);
 
   // // COPE WITH SAVING-RELATED ERRORS:
   // const hasError = await newPage.$(".error");
@@ -191,21 +194,14 @@ const assetId = await GetAssetId.data(page);
   //   errorList.data.push(id);
   // }
   // console.log("assetsUnsuccesfullSaving:", assetsUnsuccesfullSaving);
+  
+  await browser.close();
 }
-// FOR HAPPY CASE:
-// AddTextInDescription(
-//   "https://ribosom-us.labamboss.com/",
-//   5806,
-//   "mge",
-//   "steindia12",
-//   "Click on",
-//   "Click on the microscope icon (at the top) to view the entire specimen through a virtual microscope.",
-//   "autorun_lab_addStandardDisclaimerFSZ"
-// );
 
 Brocarize(
   URL_FOR_USE,
-  "15320",
+  "15320", // MT one
+  // "15532", // long description one 
   //  "9428",
   // "3468",
   USERNAME,
