@@ -3,18 +3,14 @@ async function GetUsageListForOneSpecificEmbedding(page, embeddingOfInterest) {
     '#sf_fieldset_image_used_in li[style^="list"]',
     (as) => as.map((a) => a.innerText)
   );
-  // console.log("rawUsageData: ", rawUsageData);
 
   const stringForEmbeddingOfInterest = rawUsageData.filter((item) =>
     item.includes(embeddingOfInterest)
   ).join(" ");
-  // console.log("stringForEmbeddingOfInterest: ", stringForEmbeddingOfInterest);
 
   const stringForEmbeddingOfInterestArr = stringForEmbeddingOfInterest.split("\n");
-  const articleUsageList = stringForEmbeddingOfInterestArr.filter(item => !item.includes("Articles"));
-  // console.log("articleUsageList: ", articleUsageList);
-  return articleUsageList;
-
+  const specificUsageList = stringForEmbeddingOfInterestArr.filter(item => !item.includes(embeddingOfInterest));
+  return specificUsageList;
 
   // gets article list:
   // const str = "2 Articles with with this image\n208\n215";
@@ -36,7 +32,6 @@ async function GetUsageListForOneSpecificEmbedding(page, embeddingOfInterest) {
     const valueConverted = parseInt(value);
     return { [key]: valueConverted };
   });
-  console.log("usageDataArray: ", usageDataArray);
 
   function hasOneSpecificEmbedding(imageUsageArray, keyOfInterest) {
     for (let object of imageUsageArray) {

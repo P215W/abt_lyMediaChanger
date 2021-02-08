@@ -95,19 +95,6 @@ async function RemoveTextInTitle(
 
   // await browser.close();
 }
-// FOR HAPPY CASE:
-// AddTextInDescription(
-//   "https://ribosom-us.labamboss.com/",
-//   5806,
-//   "mge",
-//   "steindia12",
-//   "Click on",
-//   "Click on the microscope icon (at the top) to view the entire specimen through a virtual microscope.",
-//   "autorun_lab_addStandardDisclaimerFSZ"
-// );
-
-// FOR ERROR CASE:
-// AddTextInDescription(13628);
 
 // EXPORT THE ABOVE FUNC TO USE IT FROM INDEX-JS:
 exports.data = RemoveTextInTitle;

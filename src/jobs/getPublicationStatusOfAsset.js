@@ -6,7 +6,7 @@ const result = require("dotenv").config({
 const GetUsageHasOneSpecificEmbedding = require("../modules/GetUsageHasOneSpecificEmbedding");
 const GetUsageListForOneSpecificEmbedding = require("../modules/GetUsageListForOneSpecificEmbedding");
 const GetAssetFilename = require("../modules/GetAssetFilename");
-const GetTitle = require("../modules/GetTitle");
+const GetTitle = require("../modules/Title/GetTitle");
 
 // CONST's (hardcoded variables):
 const USERNAME = process.env.USER;

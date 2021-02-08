@@ -4,19 +4,18 @@ const result = require("dotenv").config({
   path: "C:\\Users\\Marc\\abt_lyMediaChanger\\.env",
 });
 const SetToMinimalSaveableStatus = require("./SetToMinimalSaveableStatus");
-const GetTitle = require("./GetTitle");
+const GetTitle = require("./Title/GetTitle");
 const GetDescription = require("./GetDescription");
 const GetAuthorResponsible = require("./GetAuthorResponsible");
 const DownloadAsset = require("./DownloadAsset");
 const GetAssetFilename = require("./GetAssetFilename");
-const SetTitle = require("./SetTitle");
+const SetTitle = require("./Title/SetTitle");
 const AddTextInInternalCommentary = require("./AddTextInInternalCommentary");
 const GetTranslatedText = require("./GetTranslatedText");
 const GetAssetId = require("./GetAssetId");
-const HasBrocalinks = require("./HasBrocalinks");
+const GetBrocaByButtonColor = require("./GetBrocaByButtonColor");
 const SetNewBrocalink = require("./SetNewBrocalink");
 const SetTextInDescription = require("./SetTextInDescription");
-const { has } = require("lodash");
 
 // CONST's (hardcoded variables):
 const IS_RE_RUN_FROM_LAST_SUCCESS_AT = null; // default value: null; In case of errors, this should equal the last successfully saved asset id (as string type!, e.g. "11174")
@@ -49,9 +48,10 @@ async function Brocarize(
   const assetId = await GetAssetId.data(page);
   // checks for brocalinks:
 
-  const hasBrocalinks = await HasBrocalinks.data(isLab, browser, page, assetId);
-  console.log("hasBrocalinks: ", hasBrocalinks);
-  if (hasBrocalinks) {
+  const { buttonColorTranslated, hasBrocalink } = await GetBrocaByButtonColor.data(page);
+  console.log("buttonColorTranslated: ", buttonColorTranslated);
+  console.log("hasBrocalink: ", hasBrocalink);
+  if (hasBrocalink) {
     // closes all tabs for the brocarization process:
     await browser.close();
     return "alreadyBrocarized true";
@@ -84,16 +84,18 @@ async function Brocarize(
   console.log("translatedTitle: ", translatedTitle);
 
   // translates description:
-  const page3 = await browser.newPage();
-  let translatedDescription = await GetTranslatedText.data(page3, description);
-  if (!translatedDescription) {
-    translatedDescription = "";
-  }
-  newTranslatedDescription = translatedDescription
-    .replace(/<p>|<\/p>/g, "")
-    .replace(/<br>/g, "\n")
-    .trim();
-  console.log("newTranslatedDescription: ", newTranslatedDescription);
+  // const page3 = await browser.newPage();
+  // // let translatedDescription = await GetTranslatedText.data(page3, description);
+  // let translatedDescription = await GetTranslatedText.data(page3, descriptionWithoutHTMLTags);
+
+  // if (!translatedDescription) {
+  //   translatedDescription = "";
+  // }
+  // newTranslatedDescription = translatedDescription
+  //   .replace(/<p>|<\/p>/g, "")
+  //   .replace(/<br>/g, "\n")
+  //   .trim();
+  // console.log("newTranslatedDescription: ", newTranslatedDescription);
 
   await page.bringToFront(); // makes the initial ribosome asset's tab active again
 
@@ -114,7 +116,7 @@ async function Brocarize(
   ]);
 
   // SETS TRANSLATED TITLE:
-  await SetTitle.data(newPage, "replace", translatedTitle);
+  await SetTitle.data(newPage, "replace", translatedTitle, title);
 
   // uploads original image from path, file picker:
   try {
@@ -128,10 +130,9 @@ async function Brocarize(
   }
 
   // puts text into internal commentary of new asset as helpful meta data for later editorial process:
-  const brocarizeTag = CHANGE_COMMENTARY;
   const titleData = `Original untranslated title:\t"${title}"\nAuto-translated title:\t\t"${translatedTitle}"`;
-  const descriptionData = `Original untranslated description:\t"${descriptionWithoutHTMLTags}"\nAuto-translated image description:\t"${newTranslatedDescription}"`;
-  const textForInternalCommentary = `${brocarizeTag}\n\nID of the original brocarized asset: ${originalAssetId}\n\n${titleData}\n\n${descriptionData}\n---------\n\n`;
+  const descriptionData = `Original untranslated description:\t"${descriptionWithoutHTMLTags}"\n`;
+  const textForInternalCommentary = `ID of the original brocarized asset: ${originalAssetId}\n\n${titleData}\n\n${descriptionData}\n---------\n\n`;
   await AddTextInInternalCommentary.data(newPage, textForInternalCommentary);
 
   // deletes the by-broca-autotransferred image description (which is of course untranslated), cuz instead we did put both, the untranslated and the translated description into the internal commentary via the above code lines:
@@ -142,8 +143,8 @@ async function Brocarize(
   await newPage.keyboard.press("Enter");
 
   // SETS NEXT_EDITOR TO A PREDEFINED/HARDCODED ONE:
-  await newPage.type("#ly_media_asset_next_editor_id_chzn input", NEXT_EDITOR);
-  await newPage.keyboard.press("Enter");
+  // await newPage.type("#ly_media_asset_next_editor_id_chzn input", NEXT_EDITOR);
+  // await newPage.keyboard.press("Enter");
 
   // SETS ASSETS WITH A NON-SAVEABLE STATUS OF 0% (which e.g., some impp assets have) TO 1% STATUS:
   await SetToMinimalSaveableStatus.data(newPage, 1);
@@ -179,11 +180,12 @@ async function Brocarize(
     IS_ENVIRONMENT_EN,
     browser,
     newAssetId,
-    title
+    title,
+    assetId
   );
 
   // closes all tabs for the brocarization process:
-  await browser.close();
+  // await browser.close();
 
   return "autoBrocarized TRUE";
 }

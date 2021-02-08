@@ -6,11 +6,14 @@ const result = require("dotenv").config({
 const GetUsageHasOneSpecificEmbedding = require("../modules/GetUsageHasOneSpecificEmbedding");
 const GetUsageHasAnyEmbedding = require("../modules/GetUsageHasAnyEmbedding");
 const GetAssetId = require("../modules/GetAssetId");
-const CheckBrocalinks = require("../modules/CheckBrocalinks");
+const GetRawMediaID = require("../modules/RawMediaID/GetRawMediaID");
+const SetRawMediaID = require("../modules/RawMediaID/SetRawMediaID");
+const SetBildtyp = require("../modules/Bildtyp/SetBildtyp");
+const SetIllustration = require("../modules/Illustration/SetIllustration");
 
 // CONST's (hardcoded variables):
 const IS_RE_RUN_FROM_LAST_SUCCESS_AT = null; // default value: null; In case of errors, this should equal the last successfully saved asset id (as string type!, e.g. "11174")
-const URL_FOR_USE = process.env.BASE_URL_LAB_DE;
+const URL_FOR_USE = process.env.BASE_URL_PROD_DE;
 const IS_ENVIRONMENT_EN = false;
 const USERNAME = process.env.USER;
 const USER_IDENTIFICATION = process.env.PASS;
@@ -48,25 +51,21 @@ async function forDevelopmentTestASingleAsset(
 
   const assetId = await GetAssetId.data(page);
 
-  const hasBrocalinks =
-    (await CheckBrocalinks.data(true, browser, page, assetId)) > 0
-      ? true
-      : false;
-  console.log("hasBrocalinks: ", hasBrocalinks);
+  // "bild:Illustration=Schema"); // , "bild:Illustration=Realistische Darstellung");
+
+  const currentRawMediaId = await GetRawMediaID.data(page);
+  console.log("rawMediaId: ", currentRawMediaId);
+  console.log("TYPE rawMediaId: ", typeof currentRawMediaId);
+  console.log("length rawMediaId: ", currentRawMediaId.length);
+
+  if (currentRawMediaId.length === 0) {
+    await SetRawMediaID.data(page, "0;");
+  }
 
   await page.type("#ly_media_asset_title", "test124");
 
-  // try to edit tag for flowchart
-  await page.type(
-    "#ly_media_asset_tags_list_bildtyp_chzn input",
-    "Illustration"
-  );
-  await page.keyboard.press("Enter");
-  await page.type(
-    "#ly_media_asset_tags_list_Illustration_chzn input",
-    "Flowchart"
-  );
-  await page.keyboard.press("Enter");
+  await SetBildtyp.data(page, "Illustration");
+  await SetIllustration.data(page, "Schema", "Realistische Darstellung");
 
   const divCount = await page.$$eval("div", (divs) => divs);
   // console.log(divCount);
@@ -120,8 +119,8 @@ forDevelopmentTestASingleAsset(
   // "14030", // some embeddings
   // "15382", // zero
   "6366", // some
-  // "15409",
   // "12742", // zero embeddings
+  // "15607",
   USERNAME,
   USER_IDENTIFICATION,
   TEXT_FOR_ADDING,

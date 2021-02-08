@@ -1,6 +1,7 @@
 // Imports:
 const GetSpreadsheetData = require("../modules/GetSpreadsheetData");
 const SetSpreadsheetData = require("../modules/SetSpreadsheetData");
+const mscEntityArrays = require("../assets/mscEntityArrays");
 
 // Constants:
 const SPREADSHEET_NAME = "Kopie von 40% Radiology List";    // current spreadsheet (spr.) name
@@ -8,6 +9,8 @@ const WORKSHEET_NAME = "40% Radiology list" // meaning "Reiter" of current spr.
 const PROPERTY_TO_FILTER_FOR = "isUsed";
 const NEW_SPREADSHEET_NAME = "Filtered 40% Radiology List"; // supposed new spr. name
 const NEW_WORKSHEET_NAME = "40% Radiology List";
+
+console.log(mscEntityArrays.data.articleArray);
 
 // Get data:
 const spreadsheetData = GetSpreadsheetData.data(SPREADSHEET_NAME, WORKSHEET_NAME);

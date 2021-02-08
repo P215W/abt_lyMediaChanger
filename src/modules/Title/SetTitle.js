@@ -1,20 +1,19 @@
 const GetTitle = require("./GetTitle");
 
-async function SetTitle(page, mode, text) {
-  const title = await GetTitle.data(page); // get prevText from title
+async function SetTitle(page, mode, text, textGettingReplaced) {
+  const currentTitle = await GetTitle.data(page); // get prevText from title
 
   let newTitle;
   if (mode === "addFront") {
-    const prevTitle = title;
     const textForAddingFront = text + " ";
-    newTitle = textForAddingFront.concat(prevTitle);
+    newTitle = textForAddingFront.concat(currentTitle);
   } else if (mode === "addBehind" || mode === undefined) {
-    const prevTitle = title;
     const textForAddingBehind = " " + text;
-    newTitle = prevTitle.concat(textForAddingBehind);
+    newTitle = currentTitle.concat(textForAddingBehind);
   } else if (mode === "replace") {
-    newTitle = text;
+    newTitle = currentTitle.replace(textGettingReplaced, text);
   }
+
 
   try {
     await page.click("#ly_media_asset_title");

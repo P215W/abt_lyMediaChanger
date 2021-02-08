@@ -16,6 +16,7 @@ async function GetUsageHasAnyEmbedding(page) {
     const valueConverted = parseInt(value);
     return { [key]: valueConverted };
   });
+  const usageDataArrayForRelevantFrontendEmbeddings = usageDataArray.splice(0, 5); // only use first 5 items (to ignore the clones/sameSource stuf)
 
   function hasAnyEmbedding(imageUsageArray) {
     let result = null;
@@ -30,7 +31,7 @@ async function GetUsageHasAnyEmbedding(page) {
     }
     return result;
   }
-  return hasAnyEmbedding(usageDataArray);
+  return hasAnyEmbedding(usageDataArrayForRelevantFrontendEmbeddings);
 }
 
 exports.data = GetUsageHasAnyEmbedding;

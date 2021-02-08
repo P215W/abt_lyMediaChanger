@@ -1,7 +1,7 @@
 async function AddTextInInternalCommentary(page, text) {
   // await page.type("#ly_media_asset_cmt", text);
 
-  // GET ACCESS TO TEXT FROM IMAGE DESCRIPTION:
+  // GET ACCESS TO TEXT:
   let currentText;
   try {
     const element = await page.$("#ly_media_asset_cmt");
